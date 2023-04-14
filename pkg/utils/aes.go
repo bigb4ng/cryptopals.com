@@ -85,3 +85,57 @@ func DetectAes(src []byte) bool {
 
 	return false
 }
+
+func DecryptCBCSlice(src, iv, key []byte) ([]byte, error) {
+	if len(src)%aes.BlockSize != 0 {
+		return nil, errors.New("invalid slice size")
+	}
+	result := make([]byte, len(src))
+
+	numOfBlocks := len(src) / aes.BlockSize
+
+	for blockNumber := 0; blockNumber < numOfBlocks; blockNumber++ {
+		block := src[blockNumber*aes.BlockSize : (blockNumber+1)*aes.BlockSize]
+		decryptedBlock, err := DecryptBlock(block, key)
+		if err != nil {
+			return nil, err
+		}
+
+		xoredBlock := Xor(decryptedBlock, iv)
+		iv = block
+
+		for j := range xoredBlock {
+			result[blockNumber*aes.BlockSize+j] = xoredBlock[j]
+		}
+	}
+
+	return result, nil
+}
+
+func EncryptCBCSlice(src, iv, key []byte) ([]byte, error) {
+	src, err := Pkcs7Padding(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]byte, len(src))
+
+	numOfBlocks := len(src) / aes.BlockSize
+
+	for blockNumber := 0; blockNumber < numOfBlocks; blockNumber++ {
+		block := src[blockNumber*aes.BlockSize : (blockNumber+1)*aes.BlockSize]
+		xoredBlock := Xor(block, iv)
+		encryptedBlock, err := EncryptBlock(xoredBlock, key)
+		if err != nil {
+			return nil, err
+		}
+
+		iv = encryptedBlock
+
+		for j := range encryptedBlock {
+			result[blockNumber*aes.BlockSize+j] = encryptedBlock[j]
+		}
+	}
+
+	return result, nil
+}

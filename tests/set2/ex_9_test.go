@@ -6,13 +6,16 @@ import (
 	"testing"
 )
 
-func TestSolveEx1(t *testing.T) {
+func TestSolveEx9(t *testing.T) {
 	expected := []byte("YELLOW SUBMARINE\x04\x04\x04\x04")
 
 	src := []byte("YELLOW SUBMARINE")
 	paddingLength := 20
 
-	result, _ := utils.Pkcs7Padding(src, paddingLength)
+	result, err := utils.Pkcs7Padding(src, paddingLength)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if !bytes.Equal(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
