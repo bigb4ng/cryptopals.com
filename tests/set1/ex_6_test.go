@@ -8,7 +8,7 @@ import (
 )
 
 //go:embed "assets/6.txt"
-var plaintextEx6 []byte
+var ciphertextEx6 []byte
 
 func TestHammingDistance(t *testing.T) {
 	expected := 37
@@ -27,21 +27,13 @@ func TestHammingDistance(t *testing.T) {
 func TestSolveEx6(t *testing.T) {
 	expected := []byte("Terminator X: Bring the noise")
 
-	var buf []byte
-	for _, ch := range plaintextEx6 {
-		if ch == '\n' {
-			continue
-		}
+	encodedCiphertext := utils.RemoveChar(ciphertextEx6, '\n')
+	ciphertext, _ := utils.Base64Decode(encodedCiphertext)
 
-		buf = append(buf, ch)
-	}
-
-	dst, _ := utils.Base64Decode(buf)
-
-	keySizeGuess := utils.GetGuessedKeySizes(dst)
+	keySizeGuess := utils.GetGuessedKeySizes(ciphertext)
 	for _, guess := range keySizeGuess[:3] {
 		t.Logf("Trying to break with guessed keysize=%d (score: %f)\n", guess.KeySize, guess.Score)
-		_, key := utils.BreakXor(dst, guess.KeySize)
+		_, key := utils.BreakXor(ciphertext, guess.KeySize)
 
 		if bytes.Equal(key, expected) {
 			t.Logf("Found expected key: %s\n", string(key))
