@@ -1,13 +1,16 @@
 package utils
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 const encodeHex = "0123456789ABCDEF"
 
 // HexDecode converts hex byte array to byte array
 func HexDecode(src []byte) ([]byte, error) {
 	if len(src)%2 != 0 {
-		return nil, fmt.Errorf("fatal error: hex is incorrect length")
+		return nil, errors.New("fatal error: hex is incorrect length")
 	}
 
 	numberOfBytes := len(src) / 2
@@ -45,7 +48,7 @@ func numberToHexLetters(num byte) (lower, higher byte) {
 func hexLetterToNumber(ch byte) (byte, error) {
 	ch = toUpper(ch)
 	if !isUpperHexChar(ch) {
-		return 0, fmt.Errorf("fatal error: invalid hex value : %s", string(ch))
+		return 0, fmt.Errorf("fatal error: invalid hex value: %s", string(ch))
 	}
 	if isNumber(ch) {
 		return ch - '0', nil
@@ -57,7 +60,6 @@ func toChar(ch byte) byte {
 	return encodeHex[ch]
 }
 
-
 func isUpperHexChar(ch byte) bool {
-	return ch >= '0' && ch <= 'H'
+	return ch >= '0' && ch <= 'F'
 }
