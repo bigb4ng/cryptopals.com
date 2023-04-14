@@ -1,9 +1,9 @@
 package set1
 
 import (
+	"bytes"
 	_ "embed"
 	"main/pkg/utils"
-	"strings"
 	"testing"
 )
 
@@ -11,7 +11,7 @@ import (
 var ciphertextEx7 []byte
 
 func TestSolveEx7(t *testing.T) {
-	// expected := []byte("Terminator X: Bring the noise")
+	expected := []byte("Play that funky music \n\x04\x04\x04\x04")
 
 	key := []byte("YELLOW SUBMARINE")
 	encodedCiphertext := utils.RemoveChar(ciphertextEx7, '\n')
@@ -20,14 +20,12 @@ func TestSolveEx7(t *testing.T) {
 		t.Error(err)
 	}
 
-	t.Log(len(ciphertext))
-
 	result, err := utils.DecryptSlice(ciphertext, key)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if !strings.HasPrefix(string(result), "Play that funky music") {
-		t.Errorf("string %s did not match expected result", result)
+	if !bytes.HasSuffix(result, expected) {
+		t.Errorf("string %v did not match expected prefix", result)
 	}
 }

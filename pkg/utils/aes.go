@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/aes"
 	"errors"
 )
@@ -59,4 +60,28 @@ func DecryptSlice(src, key []byte) ([]byte, error) {
 	}
 
 	return result, nil
+}
+
+func DetectAes(src []byte) bool {
+	if len(src)%aes.BlockSize != 0 {
+		return false
+	}
+
+	srcBlocks := make([][]byte, len(src)/aes.BlockSize)
+
+	for i := 0; i < len(srcBlocks); i++ {
+		lower := i * aes.BlockSize
+		higher := (i + 1) * aes.BlockSize
+
+		var hay []byte
+		hay = append(hay, src[:lower]...)
+		hay = append(hay, src[higher:]...)
+
+		needle := src[lower:higher]
+		if bytes.Contains(hay, needle) {
+			return true
+		}
+	}
+
+	return false
 }
