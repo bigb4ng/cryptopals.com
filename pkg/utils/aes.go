@@ -8,6 +8,8 @@ import (
 	"fmt"
 )
 
+type OracleFunc func([]byte) ([]byte, error)
+
 func EncryptBlock(src []byte, key []byte) ([]byte, error) {
 	if len(src) != aes.BlockSize {
 		return nil, errors.New("invalid block size")
@@ -87,7 +89,7 @@ func DecryptEcbSlice(src, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func DetectAes(src []byte) bool {
+func DetectEcbAes(src []byte) bool {
 	if len(src)%aes.BlockSize != 0 {
 		return false
 	}
@@ -217,4 +219,74 @@ func EncryptionEcbOrCbcOracle(src []byte) ([]byte, uint32, error) {
 	}
 
 	return ciphertext, modeOfOperation, nil
+}
+
+func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
+	plaintext := []byte{}
+	shortestCipherLen, err := oracleFunc(plaintext)
+	if err != nil {
+		return nil, err
+	}
+
+	blockSize := 0
+	for {
+		plaintext = append(plaintext, 'A')
+		tempCipher, err := oracleFunc(plaintext)
+		if err != nil {
+			return nil, err
+		}
+		if len(shortestCipherLen) < len(tempCipher) {
+			blockSize = len(tempCipher) - len(shortestCipherLen)
+			break
+		}
+	}
+
+	if blockSize != aes.BlockSize {
+		return nil, errors.New("detected block size is not consistant with AES")
+	}
+
+	plaintext = make([]byte, aes.BlockSize*3)
+	for i := range plaintext {
+		plaintext[i] = 'A'
+	}
+	ciphertext, err := oracleFunc(plaintext)
+	if err != nil {
+		return nil, err
+	}
+
+	if !DetectEcbAes(ciphertext) {
+		return nil, errors.New("given oracle is not consistant with ECB mode")
+	}
+
+	plaintext = make([]byte, blockSize*2)
+	// for i := range plaintext {
+	// 	plaintext[i] = 'A'
+	// }
+
+	// ....|....|....|
+	// AAA*|AAA|SECRET
+	// AAS*|AA|SECRET
+	// brute first block
+	var decryptedSuffix []byte
+	foundMatch := false
+	for i := 0; foundMatch || i == 0; i++ {
+		foundMatch = false
+		copy(plaintext, plaintext[1:])
+		for j := 0; j <= 255; j++ {
+			plaintext[blockSize-1] = byte(j)
+
+			ciphertext, err := oracleFunc(plaintext[:blockSize*2-1-i%blockSize])
+			if err != nil {
+				return nil, err
+			}
+
+			if DetectEcbAes(HexEncode(ciphertext)) {
+				decryptedSuffix = append(decryptedSuffix, byte(j))
+				foundMatch = true
+				break
+			}
+		}
+	}
+
+	return decryptedSuffix, nil
 }
