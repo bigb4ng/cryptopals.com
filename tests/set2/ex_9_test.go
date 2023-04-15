@@ -14,10 +14,10 @@ func TestSolveEx9(t *testing.T) {
 
 	result, err := utils.Pkcs7Padding(src, paddingLength)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if !bytes.Equal(result, expected) {
-		t.Errorf("expected %v, got %v", expected, result)
+		t.Fatalf("expected %v, got %v", expected, result)
 	}
 }

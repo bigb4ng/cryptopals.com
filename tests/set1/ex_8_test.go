@@ -16,14 +16,14 @@ func TestSolveEx8(t *testing.T) {
 	for lineNum, encodedLine := range bytes.Split(ciphertextEx8, []byte("\n")) {
 		line, err := utils.HexDecode(encodedLine)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		if utils.DetectAes(line) {
 			if lineNum == expected {
 				return
 			} else {
-				t.Errorf("false positive on line %d", lineNum)
+				t.Fatalf("false positive on line %d", lineNum)
 			}
 		}
 	}

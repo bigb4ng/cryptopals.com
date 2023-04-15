@@ -16,7 +16,7 @@ func TestHammingDistance(t *testing.T) {
 	result, err := utils.SliceBitHammingDistance([]byte("this is a test"), []byte("wokka wokka!!!"))
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if result != expected {

@@ -17,15 +17,15 @@ func TestSolveEx7(t *testing.T) {
 	encodedCiphertext := utils.RemoveChar(ciphertextEx7, '\n')
 	ciphertext, err := utils.Base64Decode(encodedCiphertext)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	result, err := utils.DecryptSlice(ciphertext, key)
+	result, err := utils.DecryptEcbSlice(ciphertext, key)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if !bytes.HasSuffix(result, expected) {
-		t.Errorf("string %v did not match expected prefix", result)
+		t.Fatalf("string %v did not match expected prefix", result)
 	}
 }

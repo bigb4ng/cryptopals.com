@@ -15,6 +15,6 @@ func TestSolveEx2(t *testing.T) {
 	result := utils.HexEncode(utils.Xor(cyphertext, key))
 
 	if !bytes.Equal(expected, result) {
-		t.Errorf("Expected: %s Got: %s", expected, result)
+		t.Fatalf("Expected: %s Got: %s", expected, result)
 	}
 }

@@ -11,10 +11,10 @@ func TestSolveEx1(t *testing.T) {
 
 	result, err := utils.HexDecode([]byte("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"))
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if !bytes.Equal(result, expected) {
-		t.Errorf("Expected: %v Got: %v", string(expected), string(result))
+		t.Fatalf("Expected: %v Got: %v", string(expected), string(result))
 	}
 }

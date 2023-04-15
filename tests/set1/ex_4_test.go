@@ -24,7 +24,7 @@ func TestSolveEx4(t *testing.T) {
 
 		bufUnhex, err := utils.HexDecode(buf)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		sol := utils.GuessSingleByteXor(bufUnhex)
 		sols = append(sols, sol...)

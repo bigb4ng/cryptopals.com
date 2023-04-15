@@ -3,7 +3,9 @@ package utils
 import (
 	"bytes"
 	"crypto/aes"
+	"crypto/rand"
 	"errors"
+	"fmt"
 )
 
 func EncryptBlock(src []byte, key []byte) ([]byte, error) {
@@ -38,8 +40,31 @@ func DecryptBlock(src []byte, key []byte) ([]byte, error) {
 	return dst, nil
 
 }
+func EncryptEcbSlice(src, key []byte) ([]byte, error) {
+	src, err := Pkcs7Padding(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]byte, len(src))
 
-func DecryptSlice(src, key []byte) ([]byte, error) {
+	numOfBlocks := len(src) / aes.BlockSize
+
+	for blockNumber := 0; blockNumber < numOfBlocks; blockNumber++ {
+		block := src[blockNumber*aes.BlockSize : (blockNumber+1)*aes.BlockSize]
+		decryptedBlock, err := EncryptBlock(block, key)
+		if err != nil {
+			return nil, err
+		}
+
+		for j := range decryptedBlock {
+			result[blockNumber*aes.BlockSize+j] = decryptedBlock[j]
+		}
+	}
+
+	return result, nil
+}
+
+func DecryptEcbSlice(src, key []byte) ([]byte, error) {
 	if len(src)%aes.BlockSize != 0 {
 		return nil, errors.New("invalid slice size")
 	}
@@ -86,7 +111,7 @@ func DetectAes(src []byte) bool {
 	return false
 }
 
-func DecryptCBCSlice(src, iv, key []byte) ([]byte, error) {
+func DecryptCbcSlice(src, iv, key []byte) ([]byte, error) {
 	if len(src)%aes.BlockSize != 0 {
 		return nil, errors.New("invalid slice size")
 	}
@@ -112,7 +137,7 @@ func DecryptCBCSlice(src, iv, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func EncryptCBCSlice(src, iv, key []byte) ([]byte, error) {
+func EncryptCbcSlice(src, iv, key []byte) ([]byte, error) {
 	src, err := Pkcs7Padding(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
 	if err != nil {
 		return nil, err
@@ -138,4 +163,58 @@ func EncryptCBCSlice(src, iv, key []byte) ([]byte, error) {
 	}
 
 	return result, nil
+}
+
+func EncryptionEcbOrCbcOracle(src []byte) ([]byte, uint32, error) {
+	prefixBytesLength, err := GetSecureRandomUint32(5, 11)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed reading random bytes for prefix: %v", err)
+	}
+	suffixBytesLength, err := GetSecureRandomUint32(5, 11)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed reading random bytes for prefix: %v", err)
+	}
+
+	prefixBytes := make([]byte, prefixBytesLength)
+	n, err := rand.Read(prefixBytes)
+	if err != nil || n != int(prefixBytesLength) {
+		return nil, 0, fmt.Errorf("failed reading random bytes for prefix: %v", err)
+	}
+
+	suffixBytes := make([]byte, suffixBytesLength)
+	n, err = rand.Read(suffixBytes)
+	if err != nil || n != int(suffixBytesLength) {
+		return nil, 0, fmt.Errorf("failed reading random bytes for suffix: %v", err)
+	}
+
+	key := make([]byte, 16)
+	n, err = rand.Read(key)
+	if err != nil || n != int(16) {
+		return nil, 0, fmt.Errorf("failed reading random bytes for suffix: %v", err)
+	}
+
+	finalPlaintext := make([]byte, int(prefixBytesLength)+len(src)+int(suffixBytesLength))
+	copy(finalPlaintext[:prefixBytesLength], prefixBytes)
+	copy(finalPlaintext[prefixBytesLength:len(finalPlaintext)-int(suffixBytesLength)], src)
+	copy(finalPlaintext[len(finalPlaintext)-int(suffixBytesLength):], suffixBytes)
+
+	var ciphertext []byte
+	// 0 or 1
+	modeOfOperation, err := GetSecureRandomUint32(0, 2)
+	if err != nil {
+		return nil, 0, err
+	}
+	switch modeOfOperation {
+	case 0:
+		ciphertext, err = EncryptEcbSlice(finalPlaintext, key)
+	case 1:
+		iv := []byte("1234567890123456")
+		ciphertext, err = EncryptCbcSlice(finalPlaintext, iv, key)
+	}
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return ciphertext, modeOfOperation, nil
 }

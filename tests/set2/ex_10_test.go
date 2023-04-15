@@ -19,16 +19,16 @@ func TestSolveEx10(t *testing.T) {
 	encodedCiphertext := utils.RemoveChar(ciphertextEx10, '\n')
 	ciphertext, err := utils.Base64Decode(encodedCiphertext)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	result, err := utils.DecryptCBCSlice(ciphertext, iv, key)
+	result, err := utils.DecryptCbcSlice(ciphertext, iv, key)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if !bytes.HasSuffix(result, expected) {
-		t.Errorf("string %v did not match expected prefix", result)
+		t.Fatalf("string %v did not match expected prefix", result)
 	}
 }
 
@@ -37,17 +37,17 @@ func TestEncryptDecryptAesCBC(t *testing.T) {
 	key := []byte("YELLOW SUBMARINE")
 	iv := []byte("0123456789123456")
 
-	ciphertext, err := utils.EncryptCBCSlice(plaintext, iv, key)
+	ciphertext, err := utils.EncryptCbcSlice(plaintext, iv, key)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	result, err := utils.DecryptCBCSlice(ciphertext, iv, key)
+	result, err := utils.DecryptCbcSlice(ciphertext, iv, key)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if bytes.Equal(result, plaintext) {
-		t.Errorf("string %v did not match encrypted plaintext", result)
+		t.Fatalf("string %v did not match encrypted plaintext", result)
 	}
 }
