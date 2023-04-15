@@ -24,9 +24,6 @@ func NewEx12Oracle() (*ex12Oracle, error) {
 	return &ex12Oracle{key}, nil
 }
 
-//go:embed "assets/12.txt"
-var suffixEx12 []byte
-
 func (o *ex12Oracle) Encrypt(src []byte) ([]byte, error) {
 	encodedSuffix := utils.RemoveChar(suffixEx12, '\n')
 	suffix, _ := utils.Base64Decode(encodedSuffix)
@@ -37,6 +34,9 @@ func (o *ex12Oracle) Encrypt(src []byte) ([]byte, error) {
 
 	return utils.EncryptEcbSlice(plaintext, o.key)
 }
+
+//go:embed "assets/12.txt"
+var suffixEx12 []byte
 
 func TestSolveEx12(t *testing.T) {
 	encodedSuffix := utils.RemoveChar(suffixEx12, '\n')

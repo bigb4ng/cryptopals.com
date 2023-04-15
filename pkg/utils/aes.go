@@ -94,11 +94,8 @@ func DetectEcbAes(src []byte, threshold int) bool {
 		return false
 	}
 
-	for i := 0; i < len(src)/aes.BlockSize; i++ {
-		lower := i * aes.BlockSize
-		higher := (i + 1) * aes.BlockSize
-
-		needle := src[lower:higher]
+	for i := 0; i < len(src); i += aes.BlockSize {
+		needle := src[i : i+aes.BlockSize]
 		if bytes.Count(src, needle) >= threshold {
 			return true
 		}
@@ -252,16 +249,12 @@ func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 		return nil, errors.New("given oracle is not consistant with ECB mode")
 	}
 
-	plaintext = make([]byte, blockSize*2)
-	// for i := range plaintext {
-	// 	plaintext[i] = 'A'
-	// }
-
 	// ....|....|....|
 	// AAA*|AAA|SECRET
 	// AAS*|AA|SECRET
 	// brute first block
 	var decryptedSuffix []byte
+	plaintext = make([]byte, blockSize*2)
 	foundMatch := false
 	for i := 0; foundMatch || i == 0; i++ {
 		foundMatch = false
