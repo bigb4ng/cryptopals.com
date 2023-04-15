@@ -12,7 +12,7 @@ func TestSolveEx9(t *testing.T) {
 	src := []byte("YELLOW SUBMARINE")
 	paddingLength := 20
 
-	result, err := utils.Pkcs7Padding(src, paddingLength)
+	result, err := utils.PadPkcs7(src, paddingLength)
 	if err != nil {
 		t.Fatal(err)
 	}

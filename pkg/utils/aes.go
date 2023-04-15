@@ -43,7 +43,7 @@ func DecryptBlock(src []byte, key []byte) ([]byte, error) {
 
 }
 func EncryptEcbSlice(src, key []byte) ([]byte, error) {
-	src, err := Pkcs7Padding(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
+	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
 	if err != nil {
 		return nil, err
 	}
@@ -89,23 +89,17 @@ func DecryptEcbSlice(src, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func DetectEcbAes(src []byte) bool {
+func DetectEcbAes(src []byte, threshold int) bool {
 	if len(src)%aes.BlockSize != 0 {
 		return false
 	}
 
-	srcBlocks := make([][]byte, len(src)/aes.BlockSize)
-
-	for i := 0; i < len(srcBlocks); i++ {
+	for i := 0; i < len(src)/aes.BlockSize; i++ {
 		lower := i * aes.BlockSize
 		higher := (i + 1) * aes.BlockSize
 
-		var hay []byte
-		hay = append(hay, src[:lower]...)
-		hay = append(hay, src[higher:]...)
-
 		needle := src[lower:higher]
-		if bytes.Contains(hay, needle) {
+		if bytes.Count(src, needle) >= threshold {
 			return true
 		}
 	}
@@ -140,7 +134,7 @@ func DecryptCbcSlice(src, iv, key []byte) ([]byte, error) {
 }
 
 func EncryptCbcSlice(src, iv, key []byte) ([]byte, error) {
-	src, err := Pkcs7Padding(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
+	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +248,7 @@ func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 		return nil, err
 	}
 
-	if !DetectEcbAes(ciphertext) {
+	if !DetectEcbAes(ciphertext, 2) {
 		return nil, errors.New("given oracle is not consistant with ECB mode")
 	}
 
@@ -280,7 +274,7 @@ func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 				return nil, err
 			}
 
-			if DetectEcbAes(HexEncode(ciphertext)) {
+			if DetectEcbAes(ciphertext, 2) {
 				decryptedSuffix = append(decryptedSuffix, byte(j))
 				foundMatch = true
 				break

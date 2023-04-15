@@ -23,12 +23,12 @@ func TestSolveEx11(t *testing.T) {
 
 		switch modeOfOperation {
 		case 0:
-			if !utils.DetectEcbAes(ciphertext) {
+			if !utils.DetectEcbAes(ciphertext, 2) {
 				t.Log(string(utils.HexEncode(ciphertext)))
 				t.Fatal("ECB mode not detected")
 			}
 		case 1:
-			if utils.DetectEcbAes(ciphertext) {
+			if utils.DetectEcbAes(ciphertext, 2) {
 				t.Log(string(utils.HexEncode(ciphertext)))
 				t.Fatal("CBC mode detected as ECB")
 			}
