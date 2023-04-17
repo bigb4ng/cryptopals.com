@@ -13,7 +13,7 @@ var paddingVal = FindByteIndexInArray(base64Alphabet, paddingStd)
 
 func Base64Encode(src []byte) (dst []byte) {
 	// number of blocks * 4
-	dstLen := (len(src)/3 + boolToInt(len(src)%3 > 0)) * 4
+	dstLen := (len(src)/3 + BoolToInt(len(src)%3 > 0)) * 4
 	dst = make([]byte, dstLen)
 
 	paddedChars := (3 - len(src)%3) % 3
@@ -48,8 +48,8 @@ func Base64Decode(src []byte) (dst []byte, err error) {
 	}
 
 	paddingLen := 0
-	paddingLen += boolToInt(src[len(src)-1] == paddingStd)
-	paddingLen += boolToInt(src[len(src)-2] == paddingStd)
+	paddingLen += BoolToInt(src[len(src)-1] == paddingStd)
+	paddingLen += BoolToInt(src[len(src)-2] == paddingStd)
 
 	decodedLen := (len(src)/4)*3 - paddingLen
 

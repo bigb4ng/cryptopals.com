@@ -43,7 +43,7 @@ func DecryptBlock(src []byte, key []byte) ([]byte, error) {
 
 }
 func EncryptEcbSlice(src, key []byte) ([]byte, error) {
-	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
+	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+BoolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func DecryptCbcSlice(src, iv, key []byte) ([]byte, error) {
 }
 
 func EncryptCbcSlice(src, iv, key []byte) ([]byte, error) {
-	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+boolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
+	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+BoolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
 	if err != nil {
 		return nil, err
 	}

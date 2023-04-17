@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -25,4 +26,16 @@ func CalculateTextScore(src []byte) float64 {
 	}
 
 	return float64(score)
+}
+
+func PrintBlocks(src []byte, blockSize int) {
+	fmt.Print("| ")
+	for i := 0; i < len(src); i += blockSize {
+		max := i + blockSize
+		if max >= len(src) {
+			max = len(src) - 1
+		}
+		fmt.Printf("%s | ", HexEncode(src[i:max]))
+	}
+	fmt.Println()
 }

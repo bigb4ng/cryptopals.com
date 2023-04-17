@@ -1,6 +1,6 @@
 package utils
 
-func boolToInt(flag bool) int {
+func BoolToInt(flag bool) int {
 	if flag {
 		return 1
 	}

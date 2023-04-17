@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var expectedSuffix = []byte("I like trains!!!!!!")
+var expectedSuffixEx14 = []byte("I like trains!!!!!!")
 
 type ex14Oracle struct {
 	key []byte
@@ -36,10 +36,10 @@ func (o *ex14Oracle) Encrypt(src []byte) ([]byte, error) {
 	randomPrefix := make([]byte, randomPrefixLen)
 	rand.Read(randomPrefix)
 
-	plaintext := make([]byte, len(randomPrefix)+len(src)+len(expectedSuffix))
+	plaintext := make([]byte, len(randomPrefix)+len(src)+len(expectedSuffixEx14))
 	copy(plaintext[:len(randomPrefix)], randomPrefix)
 	copy(plaintext[len(randomPrefix):], src)
-	copy(plaintext[len(randomPrefix)+len(src):], expectedSuffix)
+	copy(plaintext[len(randomPrefix)+len(src):], expectedSuffixEx14)
 
 	return utils.EncryptEcbSlice(plaintext, o.key)
 }
@@ -135,7 +135,7 @@ func TestSolveEx14(t *testing.T) {
 
 	decryptedSuffix = decryptedSuffix[:len(decryptedSuffix)-1]
 
-	if !bytes.Equal(decryptedSuffix, expectedSuffix) {
-		t.Fatalf("decrypted suffix does not match %v != %v", decryptedSuffix, expectedSuffix)
+	if !bytes.Equal(decryptedSuffix, expectedSuffixEx14) {
+		t.Fatalf("decrypted suffix does not match %v != %v", decryptedSuffix, expectedSuffixEx14)
 	}
 }
