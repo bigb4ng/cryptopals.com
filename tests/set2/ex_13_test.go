@@ -92,34 +92,19 @@ func TestSolveEx13(t *testing.T) {
 		plaintext[i] = 'A'
 	}
 
-	blockStartOffset := 0
-	emptyCipherLen := 0
-	for i := range plaintext {
-		if i == 0 {
-			emptyCipherLen = len(pm.ProfileFor([]byte{}))
-			continue
-		}
-		profileCookie := pm.ProfileFor(plaintext[:i])
-		if len(profileCookie) > emptyCipherLen {
-			blockStartOffset = i - 1
-			break
-		}
-	}
+	blockStartOffset := aes.BlockSize - len("email=")
+	fakeBlock := utils.PadPkcs7([]byte("admin"), aes.BlockSize)
 
-	t.Logf("blockStartOffset: %d", blockStartOffset)
-	fakeBlock, err := utils.PadPkcs7([]byte("admin"), aes.BlockSize)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	fmt.Println(len(fakeBlock))
 	fakeEmailPayload := make([]byte, aes.BlockSize*2+blockStartOffset)
 	copy(fakeEmailPayload, plaintext[:blockStartOffset])
 	copy(fakeEmailPayload[blockStartOffset:], fakeBlock)
 	copy(fakeEmailPayload[blockStartOffset+aes.BlockSize:], fakeBlock)
 
 	// email= (A*offset) | fakeBlock | fakeBlock | &uid=1&role=user
+	utils.PrintBlocks(append(make([]byte, blockStartOffset), fakeEmailPayload...), aes.BlockSize)
 	fakeEmailCipher := pm.ProfileFor(fakeEmailPayload)
+	utils.PrintBlocks(fakeEmailCipher, aes.BlockSize)
+
 	var encryptedAdminBlock []byte
 
 	for i := aes.BlockSize; i < len(fakeEmailCipher); i += aes.BlockSize {

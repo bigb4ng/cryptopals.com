@@ -33,7 +33,7 @@ func PrintBlocks(src []byte, blockSize int) {
 	for i := 0; i < len(src); i += blockSize {
 		max := i + blockSize
 		if max >= len(src) {
-			max = len(src) - 1
+			max = len(src)
 		}
 		fmt.Printf("%s | ", HexEncode(src[i:max]))
 	}

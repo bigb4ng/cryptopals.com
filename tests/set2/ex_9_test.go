@@ -12,10 +12,7 @@ func TestSolveEx9(t *testing.T) {
 	src := []byte("YELLOW SUBMARINE")
 	paddingLength := 20
 
-	result, err := utils.PadPkcs7(src, paddingLength)
-	if err != nil {
-		t.Fatal(err)
-	}
+	result := utils.PadPkcs7(src, paddingLength)
 
 	if !bytes.Equal(result, expected) {
 		t.Fatalf("expected %v, got %v", expected, result)

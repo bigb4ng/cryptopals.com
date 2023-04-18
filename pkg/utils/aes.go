@@ -9,6 +9,7 @@ import (
 )
 
 type OracleFunc func([]byte) ([]byte, error)
+type CbcOracleFunc func([]byte, []byte) bool
 
 func EncryptBlock(src []byte, key []byte) ([]byte, error) {
 	if len(src) != aes.BlockSize {
@@ -42,24 +43,21 @@ func DecryptBlock(src []byte, key []byte) ([]byte, error) {
 	return dst, nil
 
 }
-func EncryptEcbSlice(src, key []byte) ([]byte, error) {
-	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+BoolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]byte, len(src))
+func EncryptEcbSlice(plaintext, key []byte) ([]byte, error) {
+	plaintext = PadPkcs7(plaintext, aes.BlockSize)
+	result := make([]byte, len(plaintext))
 
-	numOfBlocks := len(src) / aes.BlockSize
+	numOfBlocks := len(plaintext) / aes.BlockSize
 
 	for blockNumber := 0; blockNumber < numOfBlocks; blockNumber++ {
-		block := src[blockNumber*aes.BlockSize : (blockNumber+1)*aes.BlockSize]
-		decryptedBlock, err := EncryptBlock(block, key)
+		plaintextBlock := plaintext[blockNumber*aes.BlockSize : (blockNumber+1)*aes.BlockSize]
+		encryptedBlock, err := EncryptBlock(plaintextBlock, key)
 		if err != nil {
 			return nil, err
 		}
 
-		for j := range decryptedBlock {
-			result[blockNumber*aes.BlockSize+j] = decryptedBlock[j]
+		for j := range encryptedBlock {
+			result[blockNumber*aes.BlockSize+j] = encryptedBlock[j]
 		}
 	}
 
@@ -130,18 +128,14 @@ func DecryptCbcSlice(src, iv, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func EncryptCbcSlice(src, iv, key []byte) ([]byte, error) {
-	src, err := PadPkcs7(src, len(src)-len(src)%aes.BlockSize+BoolToInt(len(src)%aes.BlockSize > 0)*aes.BlockSize)
-	if err != nil {
-		return nil, err
-	}
+func EncryptCbcSlice(plaintext, iv, key []byte) ([]byte, error) {
+	plaintext = PadPkcs7(plaintext, aes.BlockSize)
+	result := make([]byte, len(plaintext))
 
-	result := make([]byte, len(src))
-
-	numOfBlocks := len(src) / aes.BlockSize
+	numOfBlocks := len(plaintext) / aes.BlockSize
 
 	for blockNumber := 0; blockNumber < numOfBlocks; blockNumber++ {
-		block := src[blockNumber*aes.BlockSize : (blockNumber+1)*aes.BlockSize]
+		block := plaintext[blockNumber*aes.BlockSize : (blockNumber+1)*aes.BlockSize]
 		xoredBlock := Xor(block, iv)
 		encryptedBlock, err := EncryptBlock(xoredBlock, key)
 		if err != nil {
@@ -276,4 +270,30 @@ func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 	}
 
 	return decryptedSuffix, nil
+}
+
+func PaddingOracleBreakCbcBlock(ciphertext []byte, iv []byte, checkPadding CbcOracleFunc) []byte {
+	result := make([]byte, 16)
+
+	origIv := make([]byte, len(iv))
+	copy(origIv, iv)
+
+	for i := range iv {
+		for j := 0; j < 256; j++ {
+			iv[aes.BlockSize-1-i] = byte(j)
+
+			if checkPadding(ciphertext, iv) {
+				break
+			}
+		}
+
+		result[aes.BlockSize-1-i] = iv[aes.BlockSize-1-i] ^ origIv[aes.BlockSize-1-i] ^ byte(i+1)
+
+		// setup padding for next
+		for j := aes.BlockSize - 1 - i; j < aes.BlockSize; j++ {
+			iv[j] = iv[j] ^ byte(i+1) ^ byte(i+2)
+		}
+	}
+
+	return result
 }

@@ -5,27 +5,25 @@ import (
 	"fmt"
 )
 
-func PadPkcs7(src []byte, dstLength int) ([]byte, error) {
-	if len(src) > dstLength {
-		return nil, errors.New("src len is longer than desired dst len")
-	}
+func PadPkcs7(src []byte, blockSize int) []byte {
+	paddingLength := blockSize - len(src)%blockSize
 
-	dst := make([]byte, dstLength)
+	dst := make([]byte, len(src)+paddingLength)
 	copy(dst, src)
-	paddingLength := dstLength - len(src)
 
 	for i := 0; i < paddingLength; i++ {
 		dst[len(src)+i] = byte(paddingLength)
 	}
 
-	return dst, nil
+	return dst
 }
-func UnpadPkcs7(data []byte, blockLen int) ([]byte, error) {
-	if len(data)%blockLen != 0 || len(data) == 0 {
+
+func UnpadPkcs7(data []byte, blockSize int) ([]byte, error) {
+	if len(data)%blockSize != 0 || len(data) == 0 {
 		return nil, fmt.Errorf("invalid data len %d", len(data))
 	}
 	padLen := int(data[len(data)-1])
-	if padLen > blockLen || padLen == 0 {
+	if padLen > blockSize || padLen == 0 {
 		return nil, errors.New("padding is invalid")
 	}
 	// check padding
