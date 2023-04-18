@@ -3,9 +3,8 @@ package utils
 import (
 	"bytes"
 	"crypto/aes"
-	"crypto/rand"
+	"encoding/binary"
 	"errors"
-	"fmt"
 )
 
 type OracleFunc func([]byte) ([]byte, error)
@@ -152,148 +151,25 @@ func EncryptCbcSlice(plaintext, iv, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func EncryptionEcbOrCbcOracle(src []byte) ([]byte, uint32, error) {
-	prefixBytesLength, err := GetSecureRandomUint32(5, 11)
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed reading random bytes for prefix: %v", err)
-	}
-	suffixBytesLength, err := GetSecureRandomUint32(5, 11)
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed reading random bytes for prefix: %v", err)
-	}
+func CtrSlice(src []byte, key []byte, nonce uint64) ([]byte, error) {
+	plainKey := make([]byte, aes.BlockSize)
+	binary.LittleEndian.PutUint64(plainKey, nonce)
 
-	prefixBytes := make([]byte, prefixBytesLength)
-	n, err := rand.Read(prefixBytes)
-	if err != nil || n != int(prefixBytesLength) {
-		return nil, 0, fmt.Errorf("failed reading random bytes for prefix: %v", err)
-	}
+	for i := 0; i < len(src); i += aes.BlockSize {
+		max := i + aes.BlockSize
+		if max > len(src) {
+			max = len(src)
+		}
 
-	suffixBytes := make([]byte, suffixBytesLength)
-	n, err = rand.Read(suffixBytes)
-	if err != nil || n != int(suffixBytesLength) {
-		return nil, 0, fmt.Errorf("failed reading random bytes for suffix: %v", err)
-	}
+		binary.LittleEndian.PutUint64(plainKey[8:], uint64(i/aes.BlockSize))
 
-	key := make([]byte, 16)
-	n, err = rand.Read(key)
-	if err != nil || n != int(16) {
-		return nil, 0, fmt.Errorf("failed reading random bytes for suffix: %v", err)
-	}
-
-	finalPlaintext := make([]byte, int(prefixBytesLength)+len(src)+int(suffixBytesLength))
-	copy(finalPlaintext[:prefixBytesLength], prefixBytes)
-	copy(finalPlaintext[prefixBytesLength:len(finalPlaintext)-int(suffixBytesLength)], src)
-	copy(finalPlaintext[len(finalPlaintext)-int(suffixBytesLength):], suffixBytes)
-
-	var ciphertext []byte
-	// 0 or 1
-	modeOfOperation, err := GetSecureRandomUint32(0, 2)
-	if err != nil {
-		return nil, 0, err
-	}
-	switch modeOfOperation {
-	case 0:
-		ciphertext, err = EncryptEcbSlice(finalPlaintext, key)
-	case 1:
-		iv := []byte("1234567890123456")
-		ciphertext, err = EncryptCbcSlice(finalPlaintext, iv, key)
-	}
-
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return ciphertext, modeOfOperation, nil
-}
-
-func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
-	plaintext := []byte{}
-	shortestCipherLen, err := oracleFunc(plaintext)
-	if err != nil {
-		return nil, err
-	}
-
-	blockSize := 0
-	for {
-		plaintext = append(plaintext, 'A')
-		tempCipher, err := oracleFunc(plaintext)
+		cipherKey, err := EncryptBlock(plainKey, key)
 		if err != nil {
 			return nil, err
 		}
-		if len(shortestCipherLen) < len(tempCipher) {
-			blockSize = len(tempCipher) - len(shortestCipherLen)
-			break
-		}
+
+		copy(src[i:max], Xor(src[i:max], cipherKey))
 	}
 
-	if blockSize != aes.BlockSize {
-		return nil, errors.New("detected block size is not consistant with AES")
-	}
-
-	plaintext = make([]byte, aes.BlockSize*3)
-	for i := range plaintext {
-		plaintext[i] = 'A'
-	}
-	ciphertext, err := oracleFunc(plaintext)
-	if err != nil {
-		return nil, err
-	}
-
-	if !DetectEcbAes(ciphertext, 2) {
-		return nil, errors.New("given oracle is not consistant with ECB mode")
-	}
-
-	// ....|....|....|
-	// AAA*|AAA|SECRET
-	// AAS*|AA|SECRET
-	// brute first block
-	var decryptedSuffix []byte
-	plaintext = make([]byte, blockSize*2)
-	foundMatch := false
-	for i := 0; foundMatch || i == 0; i++ {
-		foundMatch = false
-		copy(plaintext, plaintext[1:])
-		for j := 0; j <= 255; j++ {
-			plaintext[blockSize-1] = byte(j)
-
-			ciphertext, err := oracleFunc(plaintext[:blockSize*2-1-i%blockSize])
-			if err != nil {
-				return nil, err
-			}
-
-			if DetectEcbAes(ciphertext, 2) {
-				decryptedSuffix = append(decryptedSuffix, byte(j))
-				foundMatch = true
-				break
-			}
-		}
-	}
-
-	return decryptedSuffix, nil
-}
-
-func PaddingOracleBreakCbcBlock(ciphertext []byte, iv []byte, checkPadding CbcOracleFunc) []byte {
-	result := make([]byte, 16)
-
-	origIv := make([]byte, len(iv))
-	copy(origIv, iv)
-
-	for i := range iv {
-		for j := 0; j < 256; j++ {
-			iv[aes.BlockSize-1-i] = byte(j)
-
-			if checkPadding(ciphertext, iv) {
-				break
-			}
-		}
-
-		result[aes.BlockSize-1-i] = iv[aes.BlockSize-1-i] ^ origIv[aes.BlockSize-1-i] ^ byte(i+1)
-
-		// setup padding for next
-		for j := aes.BlockSize - 1 - i; j < aes.BlockSize; j++ {
-			iv[j] = iv[j] ^ byte(i+1) ^ byte(i+2)
-		}
-	}
-
-	return result
+	return src, nil
 }

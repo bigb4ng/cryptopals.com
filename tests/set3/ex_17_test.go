@@ -92,7 +92,7 @@ func TestSolveEx17(t *testing.T) {
 			prevBlock = ciphertext[i-aes.BlockSize : i]
 		}
 
-		copy(resultEncoded[i:], utils.PaddingOracleBreakCbcBlock(block, prevBlock, oracle.CheckValidPadding))
+		copy(resultEncoded[i:], utils.BreakCbcBlockPaddingOracle(block, prevBlock, oracle.CheckValidPadding))
 	}
 
 	resultEncoded, err = utils.UnpadPkcs7(resultEncoded, aes.BlockSize)
