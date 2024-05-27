@@ -16,7 +16,7 @@ func Xor(src, key []byte) (dst []byte) {
 type SingleByteXorGuess struct {
 	Plaintext []byte
 	Key       byte
-	Score     float64
+	Score     int
 }
 
 // GuessSingleByteXor returns map of score to decoded array

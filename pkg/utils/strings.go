@@ -1,8 +1,8 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 )
 
 func RemoveChar(src []byte, unwantedChar byte) (dst []byte) {
@@ -17,15 +17,21 @@ func RemoveChar(src []byte, unwantedChar byte) (dst []byte) {
 	return dst
 }
 
-func CalculateTextScore(src []byte) float64 {
+func CalculateTextScore(src []byte) int {
 	score := 0
-	goodChars := [12]string{"a", "e", "i", "o", "u", "r", "s", "t", "l", "m", "n", " "}
+	lowerBytes := bytes.ToLower(src)
+	goodChars := []byte{'a', 'e', 'i', 'o', 'u', 'r', 's', 't', 'l', 'm', 'n', ' ', '.', ',', ';', ':', '\''}
+	badChars := []byte{'@', '#', '$', '^', '*', '`', '\\', '{', '}', '|', '~', '>', '<', '-', '+', '=', '_', '[', ']', '"', '/', '@'}
 
 	for i := range goodChars {
-		score += strings.Count(strings.ToLower(string(src)), goodChars[i])
+		score += bytes.Count(lowerBytes, []byte{goodChars[i]})
 	}
 
-	return float64(score)
+	for i := range badChars {
+		score -= bytes.Count(lowerBytes, []byte{badChars[i]}) * 2
+	}
+
+	return score
 }
 
 func PrintBlocks(src []byte, blockSize int) {
