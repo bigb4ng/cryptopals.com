@@ -53,7 +53,7 @@ func (mt *MT19937Rng) Seed(seed uint32) {
 		mt.stateArray[i] = uint32(1812433253)*(mt.stateArray[i-1]^(mt.stateArray[i-1]>>30)) + i
 	}
 
-	mt.stateIndex = 0
+	mt.stateIndex = n
 }
 
 // GetRandomUint32 returns a random uint32 value.
