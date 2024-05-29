@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var time uint32 = 0
+var fakeTime uint32 = 0
 
 func CurrentTime() (uint32, error) {
 	diff, err := utils.GetSecureRandomUint32(40, 1000)
@@ -13,8 +13,8 @@ func CurrentTime() (uint32, error) {
 		return 0, err
 	}
 
-	time += diff
-	return time, nil
+	fakeTime += diff
+	return fakeTime, nil
 }
 
 func TestSolveEx22(t *testing.T) {
