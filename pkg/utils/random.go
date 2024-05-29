@@ -41,29 +41,29 @@ const (
 
 // MT19937Rng implements the Mersenne Twister 19937 random number generator.
 type MT19937Rng struct {
-	stateArray [n]uint32
-	stateIndex int
+	StateArray [n]uint32
+	StateIndex int
 }
 
 // Seed initializes the generator with the given seed.
 func (mt *MT19937Rng) Seed(seed uint32) {
-	mt.stateArray[0] = seed
+	mt.StateArray[0] = seed
 
 	for i := uint32(1); i < n; i++ {
-		mt.stateArray[i] = uint32(1812433253)*(mt.stateArray[i-1]^(mt.stateArray[i-1]>>30)) + i
+		mt.StateArray[i] = uint32(1812433253)*(mt.StateArray[i-1]^(mt.StateArray[i-1]>>30)) + i
 	}
 
-	mt.stateIndex = n
+	mt.StateIndex = n
 }
 
 // GetRandomUint32 returns a random uint32 value.
 func (mt *MT19937Rng) GetRandomUint32() uint32 {
-	if mt.stateIndex >= n {
+	if mt.StateIndex >= n {
 		mt.twist()
 	}
 
-	y := mt.stateArray[mt.stateIndex]
-	mt.stateIndex++
+	y := mt.StateArray[mt.StateIndex]
+	mt.StateIndex++
 
 	// Tempering transformations
 	y ^= (y >> u)
@@ -74,15 +74,55 @@ func (mt *MT19937Rng) GetRandomUint32() uint32 {
 	return y
 }
 
+func maskBits(x, from, to int) int {
+	shift := to - from - 1
+	return x & (((1 << shift) | (1<<shift - 1)) << from)
+}
+
+func BreakLeftShiftAndMask(x, shift, mask int) int {
+	ans := 0
+	mid := 0
+
+	for curShift := 0; curShift < 32-shift; curShift += shift {
+		ans |= maskBits(x, curShift, curShift+shift) ^ mid
+		mid = (maskBits(ans, curShift, curShift+shift) << shift) & mask
+	}
+
+	ans |= maskBits(x, 32-32%shift, 32) ^ mid
+
+	return ans
+}
+
+func BreakRightShift(x, shift int) int {
+	ans := 0
+	mid := 0
+
+	for curShift := 32; curShift >= shift; curShift -= shift {
+		ans |= maskBits(x, curShift-shift, curShift) ^ mid
+		mid = maskBits(ans, curShift-shift, curShift) >> shift
+	}
+
+	ans |= maskBits(x, 0, 32%shift) ^ mid
+	return ans
+}
+
+func Untemper(x int) int {
+	x = BreakRightShift(x, l)
+	x = BreakLeftShiftAndMask(x, t, c)
+	x = BreakLeftShiftAndMask(x, s, b)
+	x = BreakRightShift(x, u)
+	return x
+}
+
 // twist generates the next n values of the state array.
 func (mt *MT19937Rng) twist() {
 	for i := 0; i < n; i++ {
-		x := (mt.stateArray[i] & 0x80000000) + (mt.stateArray[(i+1)%n] & 0x7fffffff)
+		x := (mt.StateArray[i] & 0x80000000) + (mt.StateArray[(i+1)%n] & 0x7fffffff)
 		xA := x >> 1
 		if (x & 1) != 0 {
 			xA ^= a
 		}
-		mt.stateArray[i] = mt.stateArray[(i+m)%n] ^ xA
+		mt.StateArray[i] = mt.StateArray[(i+m)%n] ^ xA
 	}
-	mt.stateIndex = 0
+	mt.StateIndex = 0
 }
