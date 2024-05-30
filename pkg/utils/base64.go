@@ -13,30 +13,33 @@ var paddingVal = FindByteIndexInArray(base64Alphabet, paddingStd)
 
 func Base64Encode(src []byte) (dst []byte) {
 	// number of blocks * 4
-	dstLen := (len(src)/3 + BoolToInt(len(src)%3 > 0)) * 4
+	dstLen := (len(src)/3 + BoolToInt(len(src)%3 != 0)) * 4
 	dst = make([]byte, dstLen)
 
-	paddedChars := (3 - len(src)%3) % 3
-
 	j := 0
-	for i := 0; i < len(dst); i += 4 {
+	i := 0
+	for j < len(src)-len(src)%3 {
 		dst[i] = base64Alphabet[src[j]>>2]
 		dst[i+1] = base64Alphabet[src[j]<<6>>2|src[j+1]>>4]
+		dst[i+2] = base64Alphabet[src[j+1]<<4>>2|src[j+2]>>6]
+		dst[i+3] = base64Alphabet[src[j+2]<<2>>2]
 
-		if i+4 < len(dst) || paddedChars == 0 {
-			dst[i+2] = base64Alphabet[src[j+1]<<4>>2|src[j+2]>>6]
-			dst[i+3] = base64Alphabet[src[j+2]<<2>>2]
-		} else {
-			// need to set padding
-			dst[i+3] = paddingStd
-			if paddedChars == 2 {
-				dst[i+2] = paddingStd
-			} else {
-				dst[i+2] = base64Alphabet[src[j+1]<<4>>2|src[j+2]>>6]
-			}
-		}
-
+		i += 4
 		j += 3
+	}
+
+	charsLeft := len(src) - j
+	switch charsLeft {
+	case 2:
+		dst[i] = base64Alphabet[src[j]>>2]
+		dst[i+1] = base64Alphabet[src[j]<<6>>2|src[j+1]>>4]
+		dst[i+2] = base64Alphabet[src[j+1]<<4>>2]
+		dst[i+3] = paddingStd
+	case 1:
+		dst[i] = base64Alphabet[src[j]>>2]
+		dst[i+1] = base64Alphabet[src[j]<<6>>2]
+		dst[i+2] = paddingStd
+		dst[i+3] = paddingStd
 	}
 
 	return dst
