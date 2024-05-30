@@ -9,3 +9,7 @@ func FindByteIndexInArray(arr []byte, ch byte) (index int) {
 	}
 	return -1
 }
+
+func LastFullBlock[S ~[]E, E any](src S, blockSize int) []E {
+	return src[len(src)-len(src)%blockSize-blockSize : len(src)-len(src)%blockSize]
+}

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
+	"io"
 )
 
 // GetSecureRandomUint32 generates cryptographically secure random uint32 within [min, max)
@@ -43,6 +44,7 @@ const (
 type MT19937Rng struct {
 	StateArray [n]uint32
 	StateIndex int
+	bytesQueue []byte
 }
 
 // Seed initializes the generator with the given seed.
@@ -74,39 +76,33 @@ func (mt *MT19937Rng) GetRandomUint32() uint32 {
 	return y
 }
 
-func maskBits(x, from, to int) int {
-	shift := to - from - 1
-	return x & (((1 << shift) | (1<<shift - 1)) << from)
-}
+func BreakLeftShiftAndMask(x, shift, mask uint32) uint32 {
+	ans := uint32(0)
+	mid := uint32(0)
 
-func BreakLeftShiftAndMask(x, shift, mask int) int {
-	ans := 0
-	mid := 0
-
-	for curShift := 0; curShift < 32-shift; curShift += shift {
-		ans |= maskBits(x, curShift, curShift+shift) ^ mid
-		mid = (maskBits(ans, curShift, curShift+shift) << shift) & mask
+	for curShift := uint32(0); curShift < 32-shift; curShift += shift {
+		ans |= MaskBits(x, curShift, curShift+shift) ^ mid
+		mid = (MaskBits(ans, curShift, curShift+shift) << shift) & mask
 	}
 
-	ans |= maskBits(x, 32-32%shift, 32) ^ mid
-
+	ans |= MaskBits(x, 32-32%shift, 32) ^ mid
 	return ans
 }
 
-func BreakRightShift(x, shift int) int {
-	ans := 0
-	mid := 0
+func BreakRightShift(x, shift uint32) uint32 {
+	ans := uint32(0)
+	mid := uint32(0)
 
-	for curShift := 32; curShift >= shift; curShift -= shift {
-		ans |= maskBits(x, curShift-shift, curShift) ^ mid
-		mid = maskBits(ans, curShift-shift, curShift) >> shift
+	for curShift := uint32(32); curShift >= shift; curShift -= shift {
+		ans |= MaskBits(x, curShift-shift, curShift) ^ mid
+		mid = MaskBits(ans, curShift-shift, curShift) >> shift
 	}
 
-	ans |= maskBits(x, 0, 32%shift) ^ mid
+	ans |= MaskBits(x, 0, 32%shift) ^ mid
 	return ans
 }
 
-func Untemper(x int) int {
+func Untemper(x uint32) uint32 {
 	x = BreakRightShift(x, l)
 	x = BreakLeftShiftAndMask(x, t, c)
 	x = BreakLeftShiftAndMask(x, s, b)
@@ -125,4 +121,51 @@ func (mt *MT19937Rng) twist() {
 		mt.StateArray[i] = mt.StateArray[(i+m)%n] ^ xA
 	}
 	mt.StateIndex = 0
+}
+
+func (mt *MT19937Rng) populateBytes() {
+	rand := mt.GetRandomUint32()
+	mt.bytesQueue = make([]byte, 4)
+	binary.LittleEndian.PutUint32(mt.bytesQueue, rand)
+}
+
+func (mt *MT19937Rng) Read(p []byte) (n int, e error) {
+	for i := 0; i < len(p); i++ {
+		if len(mt.bytesQueue) == 0 {
+			mt.populateBytes()
+		}
+
+		p[i] = mt.bytesQueue[0]
+		mt.bytesQueue = mt.bytesQueue[1:]
+	}
+
+	return len(p), nil
+}
+
+func (mt *MT19937Rng) Encrypt(src []byte, key uint16) []byte {
+	mt.Seed(uint32(key))
+
+	keyStream := make([]byte, len(src))
+	_, _ = io.ReadFull(mt, keyStream)
+
+	return Xor(src, keyStream)
+}
+
+func BruteforceMT19937State(src, srcIndex, start, end uint32) (uint32, bool) {
+	stateVal := Untemper(src)
+
+	mt := MT19937Rng{}
+	found := false
+	i := start
+	for ; i <= end; i++ {
+		mt.Seed(i)
+		mt.twist()
+
+		if stateVal == mt.StateArray[srcIndex] {
+			found = true
+			break
+		}
+	}
+
+	return i, found
 }

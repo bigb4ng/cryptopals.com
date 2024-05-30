@@ -50,3 +50,8 @@ func BlockHammingDistance(src []byte, blockSize int) (float64, error) {
 
 	return float64(distance) / float64(blockSize) / float64(iters), nil
 }
+
+func MaskBits(x, from, to uint32) uint32 {
+	shift := to - from - 1
+	return x & (((1 << shift) | (1<<shift - 1)) << from)
+}

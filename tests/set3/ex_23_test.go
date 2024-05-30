@@ -13,7 +13,7 @@ func TestSolveEx23(t *testing.T) {
 	mt := utils.MT19937Rng{}
 
 	for i := 0; i < 624; i++ {
-		mt.StateArray[i] = uint32(utils.Untemper(int(secretMt.GetRandomUint32())))
+		mt.StateArray[i] = utils.Untemper(secretMt.GetRandomUint32())
 	}
 	mt.StateIndex = 624
 
