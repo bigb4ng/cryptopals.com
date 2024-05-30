@@ -14,7 +14,7 @@ func TestSolveEx7(t *testing.T) {
 	expected := []byte("Play that funky music \n\x04\x04\x04\x04")
 
 	key := []byte("YELLOW SUBMARINE")
-	encodedCiphertext := utils.RemoveChar(ciphertextEx7, '\n')
+	encodedCiphertext := utils.RemoveChars(ciphertextEx7, '\n')
 	ciphertext, err := utils.Base64Decode(encodedCiphertext)
 	if err != nil {
 		t.Fatal(err)

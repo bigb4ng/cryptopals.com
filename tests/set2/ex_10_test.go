@@ -16,7 +16,7 @@ func TestSolveEx10(t *testing.T) {
 	key := []byte("YELLOW SUBMARINE")
 	iv := make([]byte, 16)
 
-	encodedCiphertext := utils.RemoveChar(ciphertextEx10, '\n')
+	encodedCiphertext := utils.RemoveChars(ciphertextEx10, '\n')
 	ciphertext, err := utils.Base64Decode(encodedCiphertext)
 	if err != nil {
 		t.Fatal(err)

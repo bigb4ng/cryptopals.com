@@ -64,8 +64,7 @@ func (pm *exProfileManager) decodeCookie(encryptedCookie []byte) map[string]stri
 }
 
 func (pm *exProfileManager) ProfileFor(email []byte) []byte {
-	email = utils.RemoveChar(email, '=')
-	email = utils.RemoveChar(email, '&')
+	email = utils.RemoveChars(email, '=', '&')
 
 	obj := map[string]string{
 		"email": string(email),

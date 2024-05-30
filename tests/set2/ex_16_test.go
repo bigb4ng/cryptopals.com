@@ -37,8 +37,7 @@ func (o *ex16Oracle) Encrypt(src []byte) ([]byte, error) {
 	prefix := []byte("comment1=cooking%20MCs;userdata=")
 	suffix := []byte(";comment2=%20like%20a%20pound%20of%20bacon")
 
-	src = utils.RemoveChar(src, ';')
-	src = utils.RemoveChar(src, '=')
+	src = utils.RemoveChars(src, ';', '=')
 
 	plaintext := make([]byte, len(prefix)+len(src)+len(suffix))
 	copy(plaintext[:len(prefix)], prefix)

@@ -27,7 +27,7 @@ func TestHammingDistance(t *testing.T) {
 func TestSolveEx6(t *testing.T) {
 	expected := []byte("Terminator X: Bring the noise")
 
-	encodedCiphertext := utils.RemoveChar(ciphertextEx6, '\n')
+	encodedCiphertext := utils.RemoveChars(ciphertextEx6, '\n')
 	ciphertext, _ := utils.Base64Decode(encodedCiphertext)
 
 	keySizeGuess := utils.GetGuessedKeySizes(ciphertext)

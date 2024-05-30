@@ -25,7 +25,7 @@ func NewEx12Oracle() (*ex12Oracle, error) {
 }
 
 func (o *ex12Oracle) Encrypt(src []byte) ([]byte, error) {
-	encodedSuffix := utils.RemoveChar(suffixEx12, '\n')
+	encodedSuffix := utils.RemoveChars(suffixEx12, '\n')
 	suffix, _ := utils.Base64Decode(encodedSuffix)
 
 	plaintext := make([]byte, len(src)+len(suffix))
@@ -39,7 +39,7 @@ func (o *ex12Oracle) Encrypt(src []byte) ([]byte, error) {
 var suffixEx12 []byte
 
 func TestSolveEx12(t *testing.T) {
-	encodedSuffix := utils.RemoveChar(suffixEx12, '\n')
+	encodedSuffix := utils.RemoveChars(suffixEx12, '\n')
 	expectedSuffix, _ := utils.Base64Decode(encodedSuffix)
 
 	oracle, err := NewEx12Oracle()
