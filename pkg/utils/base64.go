@@ -2,7 +2,7 @@ package utils
 
 import (
 	"encoding/binary"
-	"errors"
+	"fmt"
 )
 
 const paddingStd = byte('=')
@@ -47,7 +47,7 @@ func Base64Encode(src []byte) (dst []byte) {
 
 func Base64Decode(src []byte) (dst []byte, err error) {
 	if len(src)%4 != 0 {
-		return nil, errors.New("invalid base64 len")
+		return nil, fmt.Errorf("invalid base64 len: %d", len(src))
 	}
 
 	paddingLen := 0
