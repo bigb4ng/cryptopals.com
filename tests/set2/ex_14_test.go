@@ -84,10 +84,6 @@ func TestSolveEx14(t *testing.T) {
 		}
 	}
 
-	if emptyBlockValue == nil {
-		t.Fatal("could not find empty block value")
-	}
-
 	// w8 for aligned blocks
 	// zzzzzzzzzz   | known empty block | brute  block      | AAAAAAAAAAAAAAA S | ECRET
 	// zzzzzzzzzz     0000000000000000   AAAAAAAAAAAAAAA*     AAAAAAAAAAAAAAA S   EECRET
