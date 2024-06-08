@@ -22,7 +22,7 @@ func init() {
 }
 
 func NewDHPair(p, g *big.Int) (*big.Int, *big.Int, error) {
-	randA, err := GetSecureRandomUint32(0, math.MaxUint32)
+	randA, err := GetSecureRandomUint32(2, math.MaxUint32)
 	if err != nil {
 		return nil, nil, err
 	}
