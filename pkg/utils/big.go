@@ -51,3 +51,39 @@ func InverseModulo(a, b *big.Int) *big.Int {
 
 	return &x
 }
+
+// CubeRoot calculates the cube root of a big.Int number using Halley's method.
+func CubeRoot(n *big.Int) *big.Int {
+	one := new(big.Float).SetInt64(1)
+	two := new(big.Float).SetInt64(2)
+
+	a := new(big.Float).SetInt(n)
+	twoA := new(big.Float).SetInt(n)
+	twoA.Mul(twoA, two)
+
+	Xn := new(big.Float)
+	XnPlus1 := new(big.Float).SetInt(n)
+
+	for {
+		Xn.Set(XnPlus1)
+
+		cubeXn := new(big.Float).Set(Xn)
+		cubeXn.Mul(cubeXn, Xn)
+		cubeXn.Mul(cubeXn, Xn)
+
+		nominator := new(big.Float).Set(cubeXn)
+		nominator.Add(nominator, twoA)
+
+		denominator := new(big.Float).Set(cubeXn)
+		denominator.Mul(denominator, two)
+		denominator.Add(denominator, a)
+
+		coefficient := new(big.Float).Quo(nominator, denominator)
+		XnPlus1 = new(big.Float).Mul(Xn, coefficient)
+
+		if new(big.Float).Abs(new(big.Float).Sub(Xn, XnPlus1)).Cmp(one) < 0 {
+			res, _ := XnPlus1.Int(nil)
+			return res
+		}
+	}
+}
