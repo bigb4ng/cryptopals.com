@@ -39,7 +39,7 @@ func (o *ex26Oracle) Encrypt(src []byte) ([]byte, error) {
 	copy(plaintext[len(prefix)+len(src):], suffix)
 
 	o.nonce++
-	ciphertext, err := utils.CtrSlice(plaintext, o.key, o.nonce)
+	ciphertext, err := utils.CTRSlice(plaintext, o.key, o.nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (o *ex26Oracle) Encrypt(src []byte) ([]byte, error) {
 }
 
 func (o *ex26Oracle) IsAdmin(src []byte) bool {
-	plaintext, err := utils.CtrSlice(src[8:], o.key, binary.BigEndian.Uint64(src[:8]))
+	plaintext, err := utils.CTRSlice(src[8:], o.key, binary.BigEndian.Uint64(src[:8]))
 	if err != nil {
 		panic(err)
 	}

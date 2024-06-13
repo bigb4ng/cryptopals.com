@@ -20,7 +20,7 @@ func TestSolveEx7(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := utils.DecryptEcbSlice(ciphertext, key)
+	result, err := utils.DecryptECBSlice(ciphertext, key)
 	if err != nil {
 		t.Fatal(err)
 	}

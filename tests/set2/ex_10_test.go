@@ -22,7 +22,7 @@ func TestSolveEx10(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := utils.DecryptCbcSlice(ciphertext, iv, key)
+	result, err := utils.DecryptCBCSlice(ciphertext, iv, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,12 +37,12 @@ func TestEncryptDecryptAesCBC(t *testing.T) {
 	key := []byte("YELLOW SUBMARINE")
 	iv := []byte("0123456789123456")
 
-	ciphertext, err := utils.EncryptCbcSlice(plaintext, iv, key)
+	ciphertext, err := utils.EncryptCBCSlice(plaintext, iv, key)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	result, err := utils.DecryptCbcSlice(ciphertext, iv, key)
+	result, err := utils.DecryptCBCSlice(ciphertext, iv, key)
 	if err != nil {
 		t.Fatal(err)
 	}

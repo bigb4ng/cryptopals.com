@@ -33,7 +33,7 @@ func (pm *exProfileManager) encodeCookie(obj map[string]string) []byte {
 		cookie = append(cookie, []byte(fmt.Sprintf("%s=%s&", key, obj[key]))...)
 	}
 
-	encryptedCookie, err := utils.EncryptEcbSlice(cookie[:len(cookie)-1], pm.key)
+	encryptedCookie, err := utils.EncryptECBSlice(cookie[:len(cookie)-1], pm.key)
 	if err != nil {
 		panic(err)
 	}
@@ -42,12 +42,12 @@ func (pm *exProfileManager) encodeCookie(obj map[string]string) []byte {
 }
 
 func (pm *exProfileManager) decodeCookie(encryptedCookie []byte) map[string]string {
-	paddedCookie, err := utils.DecryptEcbSlice(encryptedCookie, pm.key)
+	paddedCookie, err := utils.DecryptECBSlice(encryptedCookie, pm.key)
 	if err != nil {
 		panic(err)
 	}
 
-	cookie, err := utils.UnpadPkcs7(paddedCookie, aes.BlockSize)
+	cookie, err := utils.UnpadPKCS7(paddedCookie, aes.BlockSize)
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +92,7 @@ func TestSolveEx13(t *testing.T) {
 	}
 
 	blockStartOffset := aes.BlockSize - len("email=")
-	fakeBlock := utils.PadPkcs7([]byte("admin"), aes.BlockSize)
+	fakeBlock := utils.PadPKCS7([]byte("admin"), aes.BlockSize)
 
 	fakeEmailPayload := make([]byte, aes.BlockSize*2+blockStartOffset)
 	copy(fakeEmailPayload, plaintext[:blockStartOffset])

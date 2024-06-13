@@ -15,7 +15,7 @@ const (
 	_K3 = 0xCA62C1D6
 )
 
-func Sha1PadMessage(messageBlock []byte, prevLen int) []byte {
+func SHA1PadMessage(messageBlock []byte, prevLen int) []byte {
 	paddedBlock := make([]byte, sha1.BlockSize)
 
 	copy(paddedBlock, messageBlock)
@@ -27,7 +27,7 @@ func Sha1PadMessage(messageBlock []byte, prevLen int) []byte {
 	return paddedBlock
 }
 
-func Sha1ComputeBlock(p []byte, h0, h1, h2, h3, h4 uint32) [sha1.Size]byte {
+func SHA1ComputeBlock(p []byte, h0, h1, h2, h3, h4 uint32) [sha1.Size]byte {
 	a, b, c, d, e := h0, h1, h2, h3, h4
 
 	var w [16]uint32

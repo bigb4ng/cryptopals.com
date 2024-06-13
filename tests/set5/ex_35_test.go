@@ -35,11 +35,11 @@ func (bob *BobEx35) RecvPubKey(A *big.Int) (*big.Int, error) {
 }
 
 func (bob *BobEx35) EchoMsg(msg []byte) ([]byte, error) {
-	msg, err := utils.DecryptCbcSlice(msg[:len(msg)-aes.BlockSize], msg[len(msg)-aes.BlockSize:], bob.key[:16])
+	msg, err := utils.DecryptCBCSlice(msg[:len(msg)-aes.BlockSize], msg[len(msg)-aes.BlockSize:], bob.key[:16])
 	if err != nil {
 		return nil, err
 	}
-	msgUnpad, err := utils.UnpadPkcs7(msg, aes.BlockSize)
+	msgUnpad, err := utils.UnpadPKCS7(msg, aes.BlockSize)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (bob *BobEx35) EchoMsg(msg []byte) ([]byte, error) {
 	iv := make([]byte, 16)
 	io.ReadFull(rand.Reader, iv)
 
-	cipher, err := utils.EncryptCbcSlice(msgUnpad, iv, bob.key[:16])
+	cipher, err := utils.EncryptCBCSlice(msgUnpad, iv, bob.key[:16])
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +73,12 @@ func (eve *EveEx35) RecvPubKey(A *big.Int) (*big.Int, error) {
 }
 
 func (eve *EveEx35) EchoMsg(msg []byte) ([]byte, error) {
-	plainMsg, err := utils.DecryptCbcSlice(msg[:len(msg)-aes.BlockSize], msg[len(msg)-aes.BlockSize:], eve.key[:16])
+	plainMsg, err := utils.DecryptCBCSlice(msg[:len(msg)-aes.BlockSize], msg[len(msg)-aes.BlockSize:], eve.key[:16])
 	if err != nil {
 		return nil, err
 	}
 
-	eve.InterceptedPlain, err = utils.UnpadPkcs7(plainMsg, aes.BlockSize)
+	eve.InterceptedPlain, err = utils.UnpadPKCS7(plainMsg, aes.BlockSize)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func GetEchoResponseEx35(plaintext []byte, echo EchoFunc, negotiate NegotiateFun
 	iv := make([]byte, 16)
 	io.ReadFull(rand.Reader, iv)
 
-	cipher, err := utils.EncryptCbcSlice(plaintext, iv, key[:16])
+	cipher, err := utils.EncryptCBCSlice(plaintext, iv, key[:16])
 	if err != nil {
 		return nil, err
 	}
@@ -125,12 +125,12 @@ func GetEchoResponseEx35(plaintext []byte, echo EchoFunc, negotiate NegotiateFun
 		return nil, err
 	}
 	echoCipher, echoIv := echoMsg[:len(echoMsg)-aes.BlockSize], echoMsg[len(echoMsg)-aes.BlockSize:]
-	echoPlain, err := utils.DecryptCbcSlice(echoCipher, echoIv, key[:16])
+	echoPlain, err := utils.DecryptCBCSlice(echoCipher, echoIv, key[:16])
 	if err != nil {
 		return nil, err
 	}
 
-	echoPlainUnpad, err := utils.UnpadPkcs7(echoPlain, aes.BlockSize)
+	echoPlainUnpad, err := utils.UnpadPKCS7(echoPlain, aes.BlockSize)
 	if err != nil {
 		return nil, err
 	}

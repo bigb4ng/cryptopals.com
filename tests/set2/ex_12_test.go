@@ -32,7 +32,7 @@ func (o *ex12Oracle) Encrypt(src []byte) ([]byte, error) {
 	copy(plaintext[:len(src)], src)
 	copy(plaintext[len(src):], suffix)
 
-	return utils.EncryptEcbSlice(plaintext, o.key)
+	return utils.EncryptECBSlice(plaintext, o.key)
 }
 
 //go:embed "assets/12.txt"
@@ -47,7 +47,7 @@ func TestSolveEx12(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := utils.BreakEcbSuffixOracle(oracle.Encrypt)
+	result, err := utils.BreakECBSuffixOracle(oracle.Encrypt)
 	if err != nil {
 		t.Fatal(err)
 	}

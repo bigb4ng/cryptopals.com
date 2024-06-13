@@ -8,7 +8,7 @@ import (
 )
 
 type OracleFunc func([]byte) ([]byte, error)
-type CbcOracleFunc func([]byte, []byte) bool
+type CBCOracleFunc func([]byte, []byte) bool
 
 func EncryptBlock(src []byte, key []byte) ([]byte, error) {
 	if len(src) != aes.BlockSize {
@@ -42,8 +42,8 @@ func DecryptBlock(src []byte, key []byte) ([]byte, error) {
 	return dst, nil
 
 }
-func EncryptEcbSlice(plaintext, key []byte) ([]byte, error) {
-	plaintext = PadPkcs7(plaintext, aes.BlockSize)
+func EncryptECBSlice(plaintext, key []byte) ([]byte, error) {
+	plaintext = PadPKCS7(plaintext, aes.BlockSize)
 	result := make([]byte, len(plaintext))
 
 	numOfBlocks := len(plaintext) / aes.BlockSize
@@ -63,7 +63,7 @@ func EncryptEcbSlice(plaintext, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func DecryptEcbSlice(src, key []byte) ([]byte, error) {
+func DecryptECBSlice(src, key []byte) ([]byte, error) {
 	if len(src)%aes.BlockSize != 0 {
 		return nil, errors.New("invalid slice size")
 	}
@@ -86,7 +86,7 @@ func DecryptEcbSlice(src, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func DetectEcbAes(src []byte, threshold int) bool {
+func DetectAESInECB(src []byte, threshold int) bool {
 	if len(src)%aes.BlockSize != 0 {
 		return false
 	}
@@ -101,7 +101,7 @@ func DetectEcbAes(src []byte, threshold int) bool {
 	return false
 }
 
-func DecryptCbcSlice(src, iv, key []byte) ([]byte, error) {
+func DecryptCBCSlice(src, iv, key []byte) ([]byte, error) {
 	if len(src)%aes.BlockSize != 0 {
 		return nil, errors.New("invalid slice size")
 	}
@@ -127,8 +127,8 @@ func DecryptCbcSlice(src, iv, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func EncryptCbcSlice(plaintext, iv, key []byte) ([]byte, error) {
-	plaintext = PadPkcs7(plaintext, aes.BlockSize)
+func EncryptCBCSlice(plaintext, iv, key []byte) ([]byte, error) {
+	plaintext = PadPKCS7(plaintext, aes.BlockSize)
 	result := make([]byte, len(plaintext))
 
 	numOfBlocks := len(plaintext) / aes.BlockSize
@@ -151,7 +151,7 @@ func EncryptCbcSlice(plaintext, iv, key []byte) ([]byte, error) {
 	return result, nil
 }
 
-func CtrSlice(src []byte, key []byte, nonce uint64) ([]byte, error) {
+func CTRSlice(src []byte, key []byte, nonce uint64) ([]byte, error) {
 	plainKey := make([]byte, aes.BlockSize)
 	binary.LittleEndian.PutUint64(plainKey, nonce)
 

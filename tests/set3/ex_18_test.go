@@ -16,7 +16,7 @@ func TestSolveEx18(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	plaintext, err := utils.CtrSlice(ciphertext, key, 0)
+	plaintext, err := utils.CTRSlice(ciphertext, key, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -29,11 +29,11 @@ func (o *ex27Oracle) Encrypt(src []byte) ([]byte, error) {
 	copy(plaintext[len(prefix):], src)
 	copy(plaintext[len(prefix)+len(src):], suffix)
 
-	return utils.EncryptCbcSlice(plaintext, o.iv, o.key)
+	return utils.EncryptCBCSlice(plaintext, o.iv, o.key)
 }
 
 func (o *ex27Oracle) IsAdmin(src []byte) (bool, error) {
-	plaintext, err := utils.DecryptCbcSlice(src, o.iv, o.key)
+	plaintext, err := utils.DecryptCBCSlice(src, o.iv, o.key)
 	if err != nil {
 		panic(err)
 	}

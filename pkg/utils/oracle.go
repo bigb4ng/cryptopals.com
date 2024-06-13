@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
+func BreakECBSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 	plaintext := []byte{}
 	shortestCipherLen, err := oracleFunc(plaintext)
 	if err != nil {
@@ -38,7 +38,7 @@ func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 		return nil, err
 	}
 
-	if !DetectEcbAes(ciphertext, 2) {
+	if !DetectAESInECB(ciphertext, 2) {
 		return nil, errors.New("given oracle is not consistant with ECB mode")
 	}
 
@@ -60,7 +60,7 @@ func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 				return nil, err
 			}
 
-			if DetectEcbAes(ciphertext, 2) {
+			if DetectAESInECB(ciphertext, 2) {
 				decryptedSuffix = append(decryptedSuffix, byte(j))
 				foundMatch = true
 				break
@@ -71,7 +71,7 @@ func BreakEcbSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 	return decryptedSuffix, nil
 }
 
-func BreakCbcBlockPaddingOracle(ciphertext []byte, iv []byte, checkPadding CbcOracleFunc) []byte {
+func BreakCBCBlockPaddingOracle(ciphertext []byte, iv []byte, checkPadding CBCOracleFunc) []byte {
 	result := make([]byte, 16)
 
 	origIv := make([]byte, len(iv))

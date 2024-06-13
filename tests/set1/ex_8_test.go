@@ -19,7 +19,7 @@ func TestSolveEx8(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if utils.DetectEcbAes(line, 2) {
+		if utils.DetectAESInECB(line, 2) {
 			if lineNum == expected {
 				return
 			} else {

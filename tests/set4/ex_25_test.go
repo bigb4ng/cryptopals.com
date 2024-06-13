@@ -33,7 +33,7 @@ func NewEx25Oracle(plaintext []byte) (*ex25oracle, error) {
 		return nil, fmt.Errorf("failed obtaining random key: %v", err)
 	}
 
-	oracle.Ciphertext, err = utils.CtrSlice(plaintext, oracle.key, uint64(nonce))
+	oracle.Ciphertext, err = utils.CTRSlice(plaintext, oracle.key, uint64(nonce))
 	if err != nil {
 		return nil, fmt.Errorf("failed encrypting: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestSolveEx25(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	plaintext, err := utils.DecryptEcbSlice(ciphertext25, key)
+	plaintext, err := utils.DecryptECBSlice(ciphertext25, key)
 	if err != nil {
 		t.Fatal(err)
 	}

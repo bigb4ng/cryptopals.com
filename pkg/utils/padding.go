@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func PadPkcs7(src []byte, blockSize int) []byte {
+func PadPKCS7(src []byte, blockSize int) []byte {
 	paddingLength := blockSize - len(src)%blockSize
 
 	dst := make([]byte, len(src)+paddingLength)
@@ -18,7 +18,7 @@ func PadPkcs7(src []byte, blockSize int) []byte {
 	return dst
 }
 
-func UnpadPkcs7(data []byte, blockSize int) ([]byte, error) {
+func UnpadPKCS7(data []byte, blockSize int) ([]byte, error) {
 	if len(data)%blockSize != 0 || len(data) == 0 {
 		return nil, fmt.Errorf("invalid data len %d", len(data))
 	}

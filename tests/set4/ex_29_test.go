@@ -28,13 +28,13 @@ func TestSolveEx29(t *testing.T) {
 		guessedLen := len(msg) + i
 		lastBlock := forgedMsg[len(msg)/sha1.BlockSize*sha1.BlockSize-i:]
 
-		gluePad := utils.Sha1PadMessage(lastBlock, guessedLen/sha1.BlockSize*sha1.BlockSize)
+		gluePad := utils.SHA1PadMessage(lastBlock, guessedLen/sha1.BlockSize*sha1.BlockSize)
 		forgedMsg = append(forgedMsg[:len(msg)/sha1.BlockSize*sha1.BlockSize-i], gluePad...)
 
-		secondPad := utils.Sha1PadMessage([]byte(";admin=true;"), (guessedLen/sha1.BlockSize+1)*sha1.BlockSize)
+		secondPad := utils.SHA1PadMessage([]byte(";admin=true;"), (guessedLen/sha1.BlockSize+1)*sha1.BlockSize)
 		forgedMsg = append(forgedMsg, []byte(";admin=true;")...)
 
-		newSha := utils.Sha1ComputeBlock(secondPad, values[0], values[1], values[2], values[3], values[4])
+		newSha := utils.SHA1ComputeBlock(secondPad, values[0], values[1], values[2], values[3], values[4])
 		forgedMsg = append(forgedMsg, '.')
 		forgedMsg = append(forgedMsg, newSha[:]...)
 

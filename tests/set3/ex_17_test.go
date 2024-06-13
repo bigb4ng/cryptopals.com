@@ -41,7 +41,7 @@ func (o *ex17oracle) Encrypt() (dst []byte, iv []byte, err error) {
 		return nil, nil, fmt.Errorf("failed obtaining random iv: %v", err)
 	}
 
-	dst, err = utils.EncryptCbcSlice(src, iv, o.key)
+	dst, err = utils.EncryptCBCSlice(src, iv, o.key)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -60,12 +60,12 @@ func (o *ex17oracle) selectRandomString() ([]byte, error) {
 }
 
 func (o *ex17oracle) CheckValidPadding(ciphertext []byte, iv []byte) bool {
-	plaintext, err := utils.DecryptCbcSlice(ciphertext, iv, o.key)
+	plaintext, err := utils.DecryptCBCSlice(ciphertext, iv, o.key)
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = utils.UnpadPkcs7(plaintext, aes.BlockSize)
+	_, err = utils.UnpadPKCS7(plaintext, aes.BlockSize)
 	return err == nil
 }
 
@@ -92,10 +92,10 @@ func TestSolveEx17(t *testing.T) {
 			prevBlock = ciphertext[i-aes.BlockSize : i]
 		}
 
-		copy(resultEncoded[i:], utils.BreakCbcBlockPaddingOracle(block, prevBlock, oracle.CheckValidPadding))
+		copy(resultEncoded[i:], utils.BreakCBCBlockPaddingOracle(block, prevBlock, oracle.CheckValidPadding))
 	}
 
-	resultEncoded, err = utils.UnpadPkcs7(resultEncoded, aes.BlockSize)
+	resultEncoded, err = utils.UnpadPKCS7(resultEncoded, aes.BlockSize)
 	if err != nil {
 		t.Fatal(err)
 	}

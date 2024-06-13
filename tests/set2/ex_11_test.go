@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func EncryptionEcbOrCbcOracle(src []byte) ([]byte, uint32, error) {
+func EncryptionECBOrCBCOracle(src []byte) ([]byte, uint32, error) {
 	prefixBytesLength, err := utils.GetSecureRandomUint32(5, 11)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed reading random bytes for prefix: %v", err)
@@ -50,10 +50,10 @@ func EncryptionEcbOrCbcOracle(src []byte) ([]byte, uint32, error) {
 	}
 	switch modeOfOperation {
 	case 0:
-		ciphertext, err = utils.EncryptEcbSlice(finalPlaintext, key)
+		ciphertext, err = utils.EncryptECBSlice(finalPlaintext, key)
 	case 1:
 		iv := []byte("1234567890123456")
-		ciphertext, err = utils.EncryptCbcSlice(finalPlaintext, iv, key)
+		ciphertext, err = utils.EncryptCBCSlice(finalPlaintext, iv, key)
 	}
 
 	if err != nil {
@@ -72,19 +72,19 @@ func TestSolveEx11(t *testing.T) {
 	}
 
 	for i := 0; i < 10000; i++ {
-		ciphertext, modeOfOperation, err := EncryptionEcbOrCbcOracle(plaintext)
+		ciphertext, modeOfOperation, err := EncryptionECBOrCBCOracle(plaintext)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		switch modeOfOperation {
 		case 0:
-			if !utils.DetectEcbAes(ciphertext, 2) {
+			if !utils.DetectAESInECB(ciphertext, 2) {
 				t.Log(string(utils.HexEncode(ciphertext)))
 				t.Fatal("ECB mode not detected")
 			}
 		case 1:
-			if utils.DetectEcbAes(ciphertext, 2) {
+			if utils.DetectAESInECB(ciphertext, 2) {
 				t.Log(string(utils.HexEncode(ciphertext)))
 				t.Fatal("CBC mode detected as ECB")
 			}

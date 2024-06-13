@@ -41,7 +41,7 @@ func (o *ex14Oracle) Encrypt(src []byte) ([]byte, error) {
 	copy(plaintext[len(randomPrefix):], src)
 	copy(plaintext[len(randomPrefix)+len(src):], expectedSuffixEx14)
 
-	return utils.EncryptEcbSlice(plaintext, o.key)
+	return utils.EncryptECBSlice(plaintext, o.key)
 }
 
 // TODO: test seems to occasionally return partial results about 5% of a time (consistent with 1/16 chance)

@@ -22,7 +22,7 @@ func Ciphertexts() ([][]byte, error) {
 			return nil, err
 		}
 
-		ciphertext, err := utils.CtrSlice(plaintext, key, 0)
+		ciphertext, err := utils.CTRSlice(plaintext, key, 0)
 		if err != nil {
 			return nil, err
 		}
