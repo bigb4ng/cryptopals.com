@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto"
 	"crypto/rand"
 	"math/big"
 )
@@ -64,4 +65,21 @@ func RSADecrypt(priv *RSAPrivKey, cipher []byte) []byte {
 	c := new(big.Int).SetBytes(cipher)
 	m := new(big.Int).Exp(c, priv.D, priv.N)
 	return m.Bytes()
+}
+
+func RSASignPKCS1(priv *RSAPrivKey, data []byte, hash crypto.Hash) ([]byte, error) {
+	padded, err := PadPKCS1(data, priv.N.BitLen()/8, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	return RSAEncrypt(&RSAPubKey{
+		E: priv.D,
+		N: priv.N,
+	}, padded)
+}
+
+func RSAVerifySignPKCS1(pub *RSAPubKey, data []byte) (bool, error) {
+	padded := RSADecrypt(&RSAPrivKey{D: pub.E, N: pub.N}, data)
+	return InsecureVerifyPadPKCS1(padded), nil
 }

@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"bytes"
+	"crypto"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 )
@@ -34,4 +37,56 @@ func UnpadPKCS7(data []byte, blockSize int) ([]byte, error) {
 		}
 	}
 	return data[:len(data)-padLen], nil
+}
+
+// Ref: https://datatracker.ietf.org/doc/html/rfc3447#page-43
+var DigestHeaders = map[crypto.Hash][]byte{
+	crypto.SHA256: {0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20},
+}
+
+func PadPKCS1(data []byte, length int, hash crypto.Hash) ([]byte, error) {
+	if _, ok := DigestHeaders[hash]; !ok {
+		return nil, fmt.Errorf("hash function %v not supported", hash)
+	}
+
+	paddedData := make([]byte, 0, length)
+	paddedData = append(paddedData, data...)
+	paddedData = append(paddedData, []byte{0x00, 0x01}...)
+
+	// DATA || 00h || BT || PS || 00h || D
+	psLen := max(8, length-hash.Size()-len(data)-3-len(DigestHeaders[hash])-hash.Size())
+	ps := make([]byte, psLen)
+	for i := 0; i < psLen; i++ {
+		ps[i] = 0xFF
+	}
+
+	paddedData = append(paddedData, ps...)
+	paddedData = append(paddedData, 0x00)
+	paddedData = append(paddedData, DigestHeaders[hash]...)
+
+	digest := hash.New()
+	digest.Write(data)
+	paddedData = digest.Sum(paddedData)
+
+	return paddedData, nil
+}
+
+func InsecureVerifyPadPKCS1(data []byte) bool {
+	// 00h 01h ffh
+	paddingStart := bytes.Index(data, []byte{0x00, 0x01, 0xFF})
+	if paddingStart == -1 {
+		return false
+	}
+
+	// 00h ASN.1 HASH
+	hashIdentifierStart := bytes.Index(data[paddingStart:], append([]byte{0x00}, DigestHeaders[crypto.SHA256]...)) + paddingStart + 1
+	if hashIdentifierStart == -1 {
+		return false
+	}
+
+	unpadData := data[:paddingStart]
+	hash := data[hashIdentifierStart+len(DigestHeaders[crypto.SHA256]) : hashIdentifierStart+len(DigestHeaders[crypto.SHA256])+sha256.Size]
+
+	unpadHash := sha256.Sum256(unpadData)
+	return bytes.Equal(hash, unpadHash[:])
 }
