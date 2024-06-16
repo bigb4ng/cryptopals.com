@@ -5,8 +5,17 @@ import (
 	"fmt"
 )
 
-func RemoveChars(src []byte, unwantedChar ...byte) (dst []byte) {
-	return bytes.ReplaceAll(src, unwantedChar, []byte{})
+// RemoveChars will remove all unwanted chars in place and return the source array
+func RemoveChars(src []byte, unwantedChars ...byte) []byte {
+	j := 0
+	for i := range src {
+		if bytes.IndexByte(unwantedChars, src[i]) == -1 {
+			src[j] = src[i]
+			j++
+		}
+	}
+
+	return src[:j]
 }
 
 func CalculateTextScore(src []byte) int {
