@@ -78,8 +78,3 @@ func RSASignPKCS1(priv *RSAPrivKey, data []byte, hash crypto.Hash) ([]byte, erro
 		N: priv.N,
 	}, padded)
 }
-
-func RSAVerifySignPKCS1(pub *RSAPubKey, data []byte) (bool, error) {
-	padded := RSADecrypt(&RSAPrivKey{D: pub.E, N: pub.N}, data)
-	return InsecureVerifyPadPKCS1(padded), nil
-}

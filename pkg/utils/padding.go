@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"bytes"
 	"crypto"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 )
@@ -69,24 +67,4 @@ func PadPKCS1(data []byte, length int, hash crypto.Hash) ([]byte, error) {
 	paddedData = digest.Sum(paddedData)
 
 	return paddedData, nil
-}
-
-func InsecureVerifyPadPKCS1(data []byte) bool {
-	// 00h 01h ffh
-	paddingStart := bytes.Index(data, []byte{0x00, 0x01, 0xFF})
-	if paddingStart == -1 {
-		return false
-	}
-
-	// 00h ASN.1 HASH
-	hashIdentifierStart := bytes.Index(data[paddingStart:], append([]byte{0x00}, DigestHeaders[crypto.SHA256]...)) + paddingStart + 1
-	if hashIdentifierStart == -1 {
-		return false
-	}
-
-	unpadData := data[:paddingStart]
-	hash := data[hashIdentifierStart+len(DigestHeaders[crypto.SHA256]) : hashIdentifierStart+len(DigestHeaders[crypto.SHA256])+sha256.Size]
-
-	unpadHash := sha256.Sum256(unpadData)
-	return bytes.Equal(hash, unpadHash[:])
 }

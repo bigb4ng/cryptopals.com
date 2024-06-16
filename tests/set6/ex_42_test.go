@@ -9,6 +9,31 @@ import (
 	"testing"
 )
 
+func InsecureVerifyPadSignPKCS1(data []byte) bool {
+	// 00h 01h ffh
+	paddingStart := bytes.Index(data, []byte{0x00, 0x01, 0xFF})
+	if paddingStart == -1 {
+		return false
+	}
+
+	// 00h ASN.1 HASH
+	hashIdentifierStart := bytes.Index(data[paddingStart:], append([]byte{0x00}, utils.DigestHeaders[crypto.SHA256]...)) + paddingStart + 1
+	if hashIdentifierStart == -1 {
+		return false
+	}
+
+	unpadData := data[:paddingStart]
+	hash := data[hashIdentifierStart+len(utils.DigestHeaders[crypto.SHA256]) : hashIdentifierStart+len(utils.DigestHeaders[crypto.SHA256])+sha256.Size]
+
+	unpadHash := sha256.Sum256(unpadData)
+	return bytes.Equal(hash, unpadHash[:])
+}
+
+func InsecureRSAVerifySignPKCS1(pub *utils.RSAPubKey, data []byte) (bool, error) {
+	padded := utils.RSADecrypt(&utils.RSAPrivKey{D: pub.E, N: pub.N}, data)
+	return InsecureVerifyPadSignPKCS1(padded), nil
+}
+
 func TestRSASign(t *testing.T) {
 	pub, priv, err := utils.GenRSAPair(2048)
 	if err != nil {
@@ -18,7 +43,7 @@ func TestRSASign(t *testing.T) {
 	data := []byte("hello world")
 	signed, _ := utils.RSASignPKCS1(priv, data, crypto.SHA256)
 
-	verified, err := utils.RSAVerifySignPKCS1(pub, signed)
+	verified, err := InsecureRSAVerifySignPKCS1(pub, signed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +53,7 @@ func TestRSASign(t *testing.T) {
 	}
 
 	signed[0] ^= 0x42
-	verifiedModified, err := utils.RSAVerifySignPKCS1(pub, signed)
+	verifiedModified, err := InsecureRSAVerifySignPKCS1(pub, signed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +107,7 @@ func TestSolveEx42(t *testing.T) {
 		t.Fatalf("failed forging signature for message")
 	}
 
-	verifiedModified, err := utils.RSAVerifySignPKCS1(pub, source.Bytes())
+	verifiedModified, err := InsecureRSAVerifySignPKCS1(pub, source.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
