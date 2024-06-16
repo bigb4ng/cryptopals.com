@@ -5,7 +5,30 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"math/big"
 )
+
+// GetSecureRandomBigInt generates cryptographically secure random big.Ints within [min, max)
+func GetSecureRandomBigInt(min, max *big.Int) (result *big.Int, err error) {
+	if max.Cmp(min) < 0 {
+		err = errors.New("max number is less or equal to min")
+		return
+	}
+
+	numbersRange := new(big.Int).Sub(max, min)
+
+	xBuf := make([]byte, numbersRange.BitLen()/8+1)
+	_, err = io.ReadFull(rand.Reader, xBuf)
+	if err != nil {
+		return
+	}
+
+	result = new(big.Int).SetBytes(xBuf)
+	result.Mod(result, numbersRange)
+	result.Add(result, min)
+
+	return result, nil
+}
 
 // GetSecureRandomUint32 generates cryptographically secure random uint32 within [min, max)
 func GetSecureRandomUint32(min, max uint32) (result uint32, err error) {
