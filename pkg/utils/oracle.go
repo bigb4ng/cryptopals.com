@@ -26,7 +26,7 @@ func BreakECBSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 	}
 
 	if blockSize != aes.BlockSize {
-		return nil, errors.New("detected block size is not consistant with AES")
+		return nil, errors.New("detected block size is not consistent with AES")
 	}
 
 	plaintext = make([]byte, aes.BlockSize*3)
@@ -39,7 +39,7 @@ func BreakECBSuffixOracle(oracleFunc OracleFunc) ([]byte, error) {
 	}
 
 	if !DetectAESInECB(ciphertext, 2) {
-		return nil, errors.New("given oracle is not consistant with ECB mode")
+		return nil, errors.New("given oracle is not consistent with ECB mode")
 	}
 
 	// ....|....|....|
