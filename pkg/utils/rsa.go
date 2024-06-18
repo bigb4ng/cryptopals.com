@@ -68,7 +68,7 @@ func RSADecrypt(priv *RSAPrivKey, cipher []byte) []byte {
 }
 
 func RSASignPKCS1(priv *RSAPrivKey, data []byte, hash crypto.Hash) ([]byte, error) {
-	padded, err := PadPKCS1(data, priv.N.BitLen()/8, hash)
+	padded, err := PadSignPKCS1(data, priv.N.BitLen()/8, hash)
 	if err != nil {
 		return nil, err
 	}

@@ -7,9 +7,6 @@ import (
 	"errors"
 )
 
-type OracleFunc func([]byte) ([]byte, error)
-type CBCOracleFunc func([]byte, []byte) bool
-
 func EncryptBlock(src []byte, key []byte) ([]byte, error) {
 	if len(src) != aes.BlockSize {
 		return nil, errors.New("invalid block size")

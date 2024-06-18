@@ -6,7 +6,27 @@ import (
 
 var (
 	BigOne   = new(big.Int).SetInt64(1)
+	BigTwo   = new(big.Int).SetInt64(2)
+	BigThree = new(big.Int).SetInt64(3)
 )
+
+type BigInterval struct {
+	a, b *big.Int
+}
+
+func MaxBigInt(a, b *big.Int) *big.Int {
+	if a.Cmp(b) > 0 {
+		return a
+	}
+	return b
+}
+
+func MinBigInt(a, b *big.Int) *big.Int {
+	if a.Cmp(b) < 0 {
+		return a
+	}
+	return b
+}
 
 // ExtendedGCD implements Extended Euclidean GCD algorithm. a and b must be positive.
 func ExtendedGCD(x, y, a, b *big.Int) *big.Int {

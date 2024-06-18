@@ -42,7 +42,23 @@ var DigestHeaders = map[crypto.Hash][]byte{
 	crypto.SHA256: {0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20},
 }
 
-func PadPKCS1(data []byte, length int, hash crypto.Hash) ([]byte, error) {
+func PadEncryptPKCS1(data []byte, length int) []byte {
+	paddedData := make([]byte, 0, length)
+	paddedData = append(paddedData, []byte{0x00, 0x02}...)
+
+	paddingStringLen := max(8, length-len(data)-3)
+	paddingString := make([]byte, paddingStringLen)
+	for i := 0; i < paddingStringLen; i++ {
+		paddingString[i] = 0xFF
+	}
+	paddedData = append(paddedData, paddingString...)
+	paddedData = append(paddedData, 0x00)
+	paddedData = append(paddedData, data...)
+
+	return paddedData
+}
+
+func PadSignPKCS1(data []byte, length int, hash crypto.Hash) ([]byte, error) {
 	if _, ok := DigestHeaders[hash]; !ok {
 		return nil, fmt.Errorf("hash function %v not supported", hash)
 	}
